@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FOCUS MAP — 중요한 일은 크게, 급한 일은 가까이</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --bg:#F2F3F5; --bg-deep:#E9EAEE; --surface:#FFFFFF; --surface-2:#F7F8FA;
+  --ink:#1B1E24; --ink-2:#5A6070; --ink-3:#9AA0AE;
+  --line:#E2E4E9; --line-2:#D4D7DE;
+  --ring:rgba(27,30,36,.055);
+  --red:#E5484D; --red-soft:rgba(229,72,77,.10);
+  --c-work:#3E7BFA; --c-personal:#8B5CF6; --c-family:#2FA96B; --c-meet:#F08C2E; --c-health:#2BBFAE;
+  --shadow:0 1px 2px rgba(20,22,28,.05), 0 8px 28px rgba(20,22,28,.07);
+  --shadow-lg:0 4px 12px rgba(20,22,28,.08), 0 24px 64px rgba(20,22,28,.14);
+  --blur:saturate(1.1) blur(14px);
+  --glass:rgba(255,255,255,.72);
+}
+[data-theme="dark"]{
+  --bg:#17191E; --bg-deep:#121418; --surface:#20232A; --surface-2:#262A32;
+  --ink:#ECEDF0; --ink-2:#A6ABB8; --ink-3:#6C7280;
+  --line:#2E323B; --line-2:#3A3F4A;
+  --ring:rgba(236,237,240,.045);
+  --red:#F2555A; --red-soft:rgba(242,85,90,.14);
+  --shadow:0 1px 2px rgba(0,0,0,.25), 0 10px 32px rgba(0,0,0,.35);
+  --shadow-lg:0 6px 16px rgba(0,0,0,.35), 0 28px 72px rgba(0,0,0,.5);
+  --glass:rgba(32,35,42,.72);
+}
+*{box-sizing:border-box; margin:0; padding:0}
+html,body{height:100%}
+body{
+  font-family:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,system-ui,"Segoe UI","Malgun Gothic",sans-serif;
+  background:var(--bg); color:var(--ink);
+  overflow:hidden; font-size:15px; line-height:1.45;
+  transition:background .35s,color .35s;
+}
+button{font-family:inherit; color:inherit; background:none; border:none; cursor:pointer}
+input,select,textarea{font-family:inherit; font-size:14px; color:var(--ink); background:var(--surface-2); border:1px solid var(--line); border-radius:9px; padding:9px 11px; outline:none; width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--ink-3)}
+::placeholder{color:var(--ink-3)}
+:focus-visible{outline:2px solid var(--c-work); outline-offset:2px}
+
+/* ---------- app frame ---------- */
+#app{display:flex; flex-direction:column; height:100vh}
+header{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  padding:0 20px; height:58px; flex:0 0 auto;
+  border-bottom:1px solid var(--line);
+  background:var(--glass); backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
+  z-index:30;
+}
+.logo{display:flex; align-items:center; gap:9px; font-weight:800; letter-spacing:.14em; font-size:13.5px; user-select:none}
+.logo .dot{width:10px; height:10px; border-radius:50%; background:var(--ink); position:relative; flex:0 0 auto}
+.logo .dot::after{content:""; position:absolute; inset:-5px; border:1.5px solid var(--ink); border-radius:50%; opacity:.35}
+#statusMsg{font-size:14px; color:var(--ink-2); text-align:center; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+#statusMsg strong{color:var(--ink); font-weight:700}
+.hdr-right{display:flex; align-items:center; gap:6px}
+.icon-btn{
+  width:36px; height:36px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center;
+  color:var(--ink-2); transition:background .15s,color .15s; flex:0 0 auto;
+}
+.icon-btn:hover{background:var(--surface-2); color:var(--ink)}
+.icon-btn svg{width:18px; height:18px}
+#searchBox{position:relative; width:0; overflow:hidden; transition:width .25s ease}
+#searchBox.open{width:200px}
+#searchBox input{height:36px; border-radius:10px}
+
+/* ---------- body layout ---------- */
+#main{display:flex; flex:1; min-height:0}
+nav#sidebar{
+  flex:0 0 56px; border-right:1px solid var(--line); padding:12px 8px; display:flex; flex-direction:column; gap:2px;
+  transition:flex-basis .22s ease; overflow:hidden; background:var(--bg);
+  z-index:25;
+}
+nav#sidebar:hover, nav#sidebar:focus-within, nav#sidebar.pinned{flex-basis:196px}
+.nav-item{
+  display:flex; align-items:center; gap:12px; padding:9px 10px; border-radius:10px;
+  color:var(--ink-2); font-size:13.5px; font-weight:600; white-space:nowrap; width:100%;
+  transition:background .15s,color .15s;
+}
+.nav-item:hover{background:var(--surface-2)}
+.nav-item.active{background:var(--surface); color:var(--ink); box-shadow:var(--shadow)}
+.nav-item .sw{width:20px; height:20px; flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center}
+.nav-item .sw svg{width:17px; height:17px}
+.nav-item .cdot{width:9px; height:9px; border-radius:50%}
+.nav-sep{height:1px; background:var(--line); margin:8px 6px}
+.nav-count{margin-left:auto; font-size:11.5px; color:var(--ink-3); font-weight:600}
+
+#stage{flex:1; min-width:0; position:relative; display:flex; flex-direction:column}
+#rightList{flex:0 0 268px; border-left:1px solid var(--line); background:var(--bg); display:flex; flex-direction:column; z-index:20; min-height:0}
+#rightList h4{padding:15px 18px 6px; font-size:11.5px; letter-spacing:.12em; color:var(--ink-3); font-weight:800; flex:0 0 auto}
+#listItems{flex:1; overflow-y:auto; padding:2px 10px 96px}
+.li-row{display:flex; align-items:center; gap:10px; padding:9px 8px; border-radius:10px; cursor:pointer; transition:background .15s}
+.li-row:hover{background:var(--surface-2)}
+.li-chk{width:19px; height:19px; border-radius:50%; border:1.5px solid var(--line-2); flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center; font-size:10px; color:transparent; background:var(--surface); transition:all .15s; padding:0}
+.li-chk:hover{border-color:var(--c-family); color:var(--c-family)}
+.li-row.done .li-chk{background:var(--c-family); border-color:var(--c-family); color:#fff}
+.li-main{flex:1; min-width:0}
+.li-title{font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:color .3s}
+.li-row.done .li-title{text-decoration:line-through; text-decoration-thickness:1.5px; color:var(--ink-3); font-weight:500}
+.li-sub{font-size:11px; color:var(--ink-3); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.li-row.urgent .li-sub{color:var(--red); font-weight:700}
+.li-dot{width:8px; height:8px; border-radius:50%; flex:0 0 auto}
+.li-row.done .li-dot{opacity:.4}
+.li-sep{display:flex; align-items:center; gap:10px; font-size:10.5px; letter-spacing:.12em; font-weight:800; color:var(--ink-3); padding:14px 8px 6px}
+.li-sep::after{content:""; flex:1; height:1px; background:var(--line)}
+.li-empty{color:var(--ink-3); font-size:12.5px; text-align:center; padding:32px 10px}
+#btnList{display:none}
+@media (max-width:1080px){
+  #rightList{display:none}
+  #rightList.open{display:flex; position:fixed; right:0; top:58px; bottom:0; width:min(320px,86vw); z-index:45; box-shadow:var(--shadow-lg); background:var(--bg); border-left:1px solid var(--line)}
+  #btnList{display:flex}
+}
+.view{position:absolute; inset:0; overflow:auto; display:none}
+.view.on{display:block}
+
+/* ---------- priority canvas ---------- */
+#viewCanvas{overflow:hidden; display:none}
+#viewCanvas.on{display:flex; flex-direction:column}
+#canvas3d{
+  flex:1; position:relative; overflow:hidden; cursor:grab; touch-action:none;
+  perspective:1200px; perspective-origin:50% 50%;
+}
+#canvas3d.dragging{cursor:grabbing}
+.rings{position:fixed; pointer-events:none; z-index:0}
+#world{position:absolute; left:50%; top:50%; width:0; height:0; transform-style:preserve-3d; will-change:transform}
+#btnHome{position:absolute; right:16px; top:14px; z-index:5}
+#canvasHint{position:absolute; left:16px; bottom:14px; z-index:5; font-size:11.5px; color:var(--ink-3); font-weight:600; pointer-events:none; user-select:none}
+#emptyMsg{position:absolute; inset:0; display:none; align-items:center; justify-content:center; pointer-events:none}
+#focusPanel{
+  position:absolute; left:50%; bottom:88px; z-index:6;
+  transform:translateX(-50%) translateY(16px);
+  display:flex; gap:8px; padding:8px;
+  background:var(--glass); backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow-lg);
+  opacity:0; pointer-events:none;
+  transition:opacity .45s cubic-bezier(.65,0,.35,1), transform .45s cubic-bezier(.65,0,.35,1);
+}
+#focusPanel.show{opacity:1; pointer-events:auto; transform:translateX(-50%)}
+#focusPanel{flex-direction:column; align-items:center}
+.fp-btns{display:flex; gap:8px}
+#fpWhy{font-size:12px; color:var(--ink-2); font-weight:600; max-width:360px; text-align:center; padding:2px 8px 0}
+#fpWhy:empty{display:none}
+#overdueRow{display:flex; flex-wrap:wrap; justify-content:center; gap:12px; width:100%}
+#overdueLabel{
+  font-size:11px; letter-spacing:.12em; font-weight:800; color:var(--red);
+  display:flex; align-items:center; gap:8px; margin-bottom:-6px;
+}
+#overdueLabel::before,#overdueLabel::after{content:""; height:1px; width:44px; background:var(--red); opacity:.35}
+#cardField{
+  display:flex; flex-wrap:wrap; justify-content:center; align-items:center; align-content:center;
+  gap:16px; width:100%; max-width:1080px; flex:1;
+}
+.empty-state{color:var(--ink-3); text-align:center; padding:60px 20px; font-size:14.5px; line-height:1.8}
+.empty-state b{color:var(--ink-2)}
+
+/* ---------- cards (circular) ---------- */
+.card{
+  position:absolute; left:0; top:0; background:var(--surface); border:1.5px solid var(--line);
+  border-radius:50%; box-shadow:var(--shadow); text-align:center;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:0 13%; cursor:pointer;
+  filter:brightness(var(--dp,1));
+  transition:filter .5s cubic-bezier(.65,0,.35,1), opacity .4s cubic-bezier(.65,0,.35,1), box-shadow .2s, border-color .2s;
+  animation:cardIn .55s cubic-bezier(.65,0,.35,1);
+}
+@keyframes cardIn{from{opacity:0} to{opacity:1}}
+.card:hover{box-shadow:var(--shadow-lg); border-color:var(--line-2)}
+.card.dim{filter:brightness(.55) saturate(.7); opacity:.55}
+.card.gone{opacity:0 !important; pointer-events:none}
+.card.fcs{border-color:var(--ink); box-shadow:var(--shadow-lg); z-index:2; filter:brightness(1)}
+/* progress ring hugging the circle edge */
+.card .ring{
+  position:absolute; inset:3px; border-radius:50%; pointer-events:none;
+  background:conic-gradient(var(--rc) calc(var(--p)*1%), transparent 0);
+  -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 5.5px), #000 calc(100% - 4.5px));
+          mask:radial-gradient(farthest-side, transparent calc(100% - 5.5px), #000 calc(100% - 4.5px));
+  opacity:.95;
+}
+.card .cat-ic{width:26px; height:26px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:13px; margin-bottom:6px; flex:0 0 auto}
+.card .imp-flag{font-size:9.5px; font-weight:800; letter-spacing:.1em; padding:2px 8px; border-radius:999px; background:var(--ink); color:var(--bg); margin-bottom:5px}
+.card .title{font-weight:700; letter-spacing:-.01em; word-break:keep-all; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.3}
+.card .due{color:var(--ink-2); font-weight:500; margin-top:5px; line-height:1.4}
+.card .due .warn{color:var(--red)}
+.card .due.past{color:var(--red); font-weight:700}
+.card .meta{margin-top:4px; color:var(--ink-3); font-weight:600}
+.card .chk{
+  width:26px; height:26px; border-radius:50%; border:1.5px solid var(--line-2); margin-top:8px;
+  display:inline-flex; align-items:center; justify-content:center; color:transparent; flex:0 0 auto;
+  background:var(--surface-2); transition:all .15s; font-size:13px;
+}
+.card .chk:hover{border-color:var(--c-family); color:var(--c-family); background:var(--surface)}
+.card .chk.on{border-color:var(--c-family); color:var(--c-family)}
+.card .del{
+  position:absolute; top:9%; right:9%; width:22px; height:22px; border-radius:50%;
+  border:1.5px solid var(--line-2); background:var(--surface); color:var(--ink-3);
+  display:inline-flex; align-items:center; justify-content:center; font-size:11px; padding:0;
+  opacity:0; transition:opacity .15s, border-color .15s, color .15s, background .15s; z-index:3;
+}
+.card:hover .del, .card:focus-within .del, .card.fcs .del{opacity:1}
+.card .del:hover{border-color:var(--red); color:var(--red); background:var(--red-soft)}
+.card.sz-XS .del{width:18px; height:18px; font-size:9px}
+/* size tiers = diameters */
+.card.sz-XS{width:112px; height:112px; font-size:10.5px} .card.sz-XS .title{font-size:11.5px; -webkit-line-clamp:3}
+.card.sz-S {width:150px; height:150px; font-size:11px}   .card.sz-S  .title{font-size:12.5px}
+.card.sz-M {width:190px; height:190px; font-size:11.5px} .card.sz-M  .title{font-size:14.5px}
+.card.sz-L {width:242px; height:242px; font-size:12.5px} .card.sz-L  .title{font-size:17px; -webkit-line-clamp:3}
+.card.sz-XL{width:308px; height:308px; font-size:13.5px} .card.sz-XL .title{font-size:21px; -webkit-line-clamp:3}
+.card.sz-XS .due,.card.sz-XS .meta,.card.sz-XS .imp-flag{display:none}
+.card.sz-XS .cat-ic{width:20px; height:20px; font-size:10px; margin-bottom:4px}
+.card.sz-XS .chk{width:20px; height:20px; margin-top:5px; font-size:10px}
+.card.sz-S .meta{display:none}
+.card.sz-S .due{font-size:10.5px}
+.card.urgent{border-width:2.5px; border-color:var(--red)}
+.card.urgent .due{color:var(--red); font-weight:700}
+.card.overdue{border-width:2.5px; border-color:var(--red); background:linear-gradient(var(--red-soft),var(--red-soft)),var(--surface)}
+.card.dimmed{filter:blur(1.5px) opacity(.45); pointer-events:none}
+
+/* ---------- overload banner ---------- */
+#overloadBanner{
+  display:none; margin:14px auto 0; max-width:720px; width:calc(100% - 48px);
+  background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--red);
+  border-radius:12px; padding:12px 16px; box-shadow:var(--shadow); flex:0 0 auto;
+}
+#overloadBanner.show{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+#overloadBanner .msg{font-size:13.5px; color:var(--ink-2); flex:1; min-width:200px}
+#overloadBanner .msg b{color:var(--ink)}
+.chip-btn{font-size:12.5px; font-weight:700; padding:7px 12px; border-radius:9px; border:1px solid var(--line); background:var(--surface-2); transition:all .15s}
+.chip-btn:hover{border-color:var(--ink-3); background:var(--surface)}
+
+/* ---------- timeline ---------- */
+#viewTimeline .tl-wrap{max-width:640px; margin:0 auto; padding:32px 24px 140px}
+.tl-h{font-size:19px; font-weight:800; letter-spacing:-.02em; margin-bottom:4px}
+.tl-sub{color:var(--ink-3); font-size:13px; margin-bottom:26px}
+.tl-item{display:flex; gap:16px}
+.tl-time{flex:0 0 62px; text-align:right; font-size:12.5px; font-weight:700; color:var(--ink-2); padding-top:14px; font-variant-numeric:tabular-nums}
+.tl-rail{flex:0 0 auto; width:12px; display:flex; flex-direction:column; align-items:center}
+.tl-rail .nd{width:10px; height:10px; border-radius:50%; border:2.5px solid var(--ink-3); background:var(--bg); margin-top:18px; flex:0 0 auto}
+.tl-rail .ln{width:1.5px; flex:1; background:var(--line-2)}
+.tl-card{flex:1; background:var(--surface); border:1px solid var(--line); border-radius:13px; padding:13px 15px; margin:6px 0 8px; box-shadow:var(--shadow); cursor:pointer; transition:transform .15s}
+.tl-card:hover{transform:translateX(3px)}
+.tl-card .t{font-weight:700; font-size:14.5px}
+.tl-card .m{font-size:12.5px; color:var(--ink-2); margin-top:3px}
+.tl-gap{margin-left:90px; padding:7px 0 7px 28px; color:var(--ink-3); font-size:12px; font-weight:600; font-style:normal; border-left:1.5px dashed var(--line-2)}
+
+/* ---------- calendar ---------- */
+#viewCal .cal-wrap{max-width:1060px; margin:0 auto; padding:28px 24px 140px}
+.cal-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px}
+.cal-top h2{font-size:19px; font-weight:800; letter-spacing:-.02em}
+.cal-nav{display:flex; gap:6px}
+.cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:8px}
+.cal-dow{text-align:center; font-size:11.5px; font-weight:800; letter-spacing:.08em; color:var(--ink-3); padding:4px 0}
+.cal-cell{background:var(--surface); border:1px solid var(--line); border-radius:12px; min-height:132px; padding:8px; display:flex; flex-direction:column; gap:5px}
+.cal-cell.today{border-color:var(--ink); border-width:1.5px}
+.cal-cell .d{font-size:12px; font-weight:800; color:var(--ink-2)}
+.cal-cell.today .d{color:var(--ink)}
+.cal-cell.other{opacity:.5}
+.cal-ev{font-size:11.5px; font-weight:600; padding:4px 7px; border-radius:7px; background:var(--surface-2); border:1px solid var(--line); cursor:pointer; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; text-align:left; border-left-width:3px}
+.cal-ev.dn{text-decoration:line-through; opacity:.5}
+
+/* ---------- focus mode ---------- */
+#viewFocus{display:none}
+#viewFocus.on{display:flex; align-items:center; justify-content:center}
+.focus-box{max-width:560px; width:calc(100% - 48px); text-align:center; padding-bottom:80px}
+.focus-cat{font-size:12px; font-weight:800; letter-spacing:.12em; margin-bottom:14px; display:inline-flex; align-items:center; gap:7px}
+.focus-title{font-size:34px; font-weight:800; letter-spacing:-.03em; word-break:keep-all; line-height:1.25}
+.focus-due{color:var(--ink-2); margin-top:12px; font-size:15px}
+.focus-why{color:var(--ink-3); margin-top:9px; font-size:13px; font-weight:600}
+.focus-timer{font-size:64px; font-weight:200; letter-spacing:.02em; margin:36px 0 6px; font-variant-numeric:tabular-nums}
+.focus-timer-lb{font-size:12px; letter-spacing:.14em; color:var(--ink-3); font-weight:700}
+.focus-prog{margin:34px auto 0; max-width:380px}
+.focus-prog .lb{display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; color:var(--ink-2); margin-bottom:8px}
+input[type=range]{-webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:3px; background:var(--line-2); padding:0; border:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:var(--ink); cursor:pointer; border:3px solid var(--bg); box-shadow:var(--shadow)}
+.focus-actions{display:flex; gap:10px; justify-content:center; margin-top:36px}
+
+/* ---------- bottom dock ---------- */
+#dock{
+  position:fixed; bottom:22px; left:50%; transform:translateX(-50%);
+  display:flex; align-items:center; gap:8px; padding:8px;
+  background:var(--glass); backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow-lg); z-index:40;
+}
+.dock-btn{display:flex; align-items:center; gap:8px; padding:10px 16px; border-radius:12px; font-size:13.5px; font-weight:700; color:var(--ink-2); transition:all .15s; white-space:nowrap}
+.dock-btn:hover{background:var(--surface-2); color:var(--ink)}
+.dock-btn.primary{background:var(--ink); color:var(--bg)}
+.dock-btn.primary:hover{opacity:.88}
+.dock-btn svg{width:16px; height:16px}
+.dock-sep{width:1px; height:22px; background:var(--line)}
+.seg{display:flex; background:var(--surface-2); border:1px solid var(--line); border-radius:11px; padding:3px}
+.seg button{padding:7px 11px; border-radius:8px; font-size:12.5px; font-weight:700; color:var(--ink-3)}
+.seg button.on{background:var(--surface); color:var(--ink); box-shadow:var(--shadow)}
+
+/* ---------- modal ---------- */
+.overlay{position:fixed; inset:0; background:rgba(15,17,21,.45); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); z-index:60; display:none; align-items:center; justify-content:center; padding:20px}
+.overlay.show{display:flex}
+.modal{background:var(--surface); border:1px solid var(--line); border-radius:20px; box-shadow:var(--shadow-lg); width:100%; max-width:480px; max-height:calc(100vh - 60px); overflow:auto; animation:mIn .28s cubic-bezier(.2,.8,.25,1)}
+@keyframes mIn{from{opacity:0; transform:translateY(14px) scale(.97)} to{opacity:1; transform:none}}
+.modal-h{display:flex; align-items:center; justify-content:space-between; padding:18px 22px 0}
+.modal-h h3{font-size:17px; font-weight:800; letter-spacing:-.02em}
+.modal-b{padding:16px 22px 22px; display:flex; flex-direction:column; gap:13px}
+.frow{display:flex; gap:10px}
+.frow>*{flex:1}
+.flabel{font-size:12px; font-weight:700; color:var(--ink-2); margin-bottom:5px; display:block}
+.seg-full{display:flex; background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:3px; gap:2px}
+.seg-full button{flex:1; padding:8px 4px; border-radius:8px; font-size:13px; font-weight:700; color:var(--ink-3)}
+.seg-full button.on{background:var(--surface); color:var(--ink); box-shadow:var(--shadow)}
+.cat-pick{display:flex; gap:7px; flex-wrap:wrap}
+.cat-pick button{display:flex; align-items:center; gap:6px; padding:7px 12px; border-radius:9px; border:1px solid var(--line); background:var(--surface-2); font-size:12.5px; font-weight:700; color:var(--ink-2)}
+.cat-pick button.on{border-color:var(--ink); color:var(--ink); background:var(--surface)}
+.cat-pick .cd{width:8px; height:8px; border-radius:50%}
+.detail-toggle{font-size:12.5px; font-weight:700; color:var(--ink-3); text-align:left; padding:2px 0}
+.detail-toggle:hover{color:var(--ink)}
+#detailFields{display:none; flex-direction:column; gap:13px}
+#detailFields.show{display:flex}
+.modal-f{display:flex; gap:9px; padding:0 22px 22px}
+.btn{padding:11px 18px; border-radius:11px; font-size:14px; font-weight:700; border:1px solid var(--line); background:var(--surface-2); transition:all .15s}
+.btn:hover{border-color:var(--ink-3)}
+.btn.primary{background:var(--ink); color:var(--bg); border-color:var(--ink); flex:1}
+.btn.primary:hover{opacity:.88}
+.btn.danger{color:var(--red); border-color:var(--red-soft); background:var(--red-soft)}
+.range-val{font-variant-numeric:tabular-nums; font-weight:800}
+
+/* settings rows */
+.set-row{display:flex; align-items:center; justify-content:space-between; gap:14px; padding:4px 0}
+.set-row .t{font-size:14px; font-weight:600}
+.set-row .s{font-size:12px; color:var(--ink-3); margin-top:2px}
+.set-row input[type=number]{width:78px; text-align:center}
+
+/* toast */
+#toast{position:fixed; bottom:96px; left:50%; transform:translateX(-50%) translateY(16px); background:var(--ink); color:var(--bg); font-size:13.5px; font-weight:600; padding:11px 18px; border-radius:12px; box-shadow:var(--shadow-lg); opacity:0; pointer-events:none; transition:all .3s; z-index:80; max-width:calc(100vw - 40px); text-align:center}
+#toast.show{opacity:1; transform:translateX(-50%); pointer-events:auto}
+#toast button{background:none; border:none; color:inherit; font-weight:800; text-decoration:underline; margin-left:10px; cursor:pointer; font-size:13px}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important; transition-duration:.01ms !important}
+}
+@media (max-width:760px){
+  nav#sidebar{display:none}
+  #statusMsg{font-size:12.5px}
+  .card.sz-XL{width:240px; height:240px} .card.sz-XL .title{font-size:17px}
+  .card.sz-L{width:198px; height:198px} .card.sz-L .title{font-size:14.5px}
+  .card.sz-M{width:158px; height:158px} .card.sz-M .title{font-size:13px}
+  .card.sz-S{width:128px; height:128px}
+  .card.sz-XS{width:100px; height:100px}
+  #dock{max-width:calc(100vw - 16px); overflow-x:auto; bottom:10px; gap:6px; padding:6px}
+  .dock-btn{min-height:44px; padding:10px 12px}
+  .seg button{min-height:38px; padding:9px 10px}
+  .icon-btn{width:40px; height:40px}
+  .cal-wrap{overflow-x:auto}
+  .cal-grid{min-width:640px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="logo"><span class="dot"></span>FOCUS&nbsp;MAP</div>
+    <div id="statusMsg"></div>
+    <div class="hdr-right">
+      <div id="searchBox"><input id="searchInput" type="search" placeholder="일정 검색…" aria-label="일정 검색"></div>
+      <button class="icon-btn" id="btnSearch" title="검색" aria-label="검색">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      </button>
+      <button class="icon-btn" id="btnTheme" title="테마 전환" aria-label="테마 전환">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+      <button class="icon-btn" id="btnSettings" title="설정" aria-label="설정">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div id="main">
+    <nav id="sidebar" aria-label="필터">
+      <button class="nav-item" id="sbPin" aria-expanded="false" aria-label="사이드바 펼치기 고정"><span class="sw"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></span>메뉴 고정</button>
+      <div class="nav-sep"></div>
+      <button class="nav-item active" aria-current="true" data-filter="all"><span class="sw"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>전체 일정<span class="nav-count" data-cnt="all"></span></button>
+      <button class="nav-item" data-filter="today"><span class="sw"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>오늘<span class="nav-count" data-cnt="today"></span></button>
+      <button class="nav-item" data-filter="week"><span class="sw"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4m8-4v4"/></svg></span>이번 주<span class="nav-count" data-cnt="week"></span></button>
+      <div class="nav-sep"></div>
+      <button class="nav-item" data-filter="work"><span class="sw"><span class="cdot" style="background:var(--c-work)"></span></span>업무</button>
+      <button class="nav-item" data-filter="personal"><span class="sw"><span class="cdot" style="background:var(--c-personal)"></span></span>개인</button>
+      <button class="nav-item" data-filter="family"><span class="sw"><span class="cdot" style="background:var(--c-family)"></span></span>가족</button>
+      <button class="nav-item" data-filter="meet"><span class="sw"><span class="cdot" style="background:var(--c-meet)"></span></span>약속</button>
+      <button class="nav-item" data-filter="health"><span class="sw"><span class="cdot" style="background:var(--c-health)"></span></span>건강</button>
+      <div class="nav-sep"></div>
+      <button class="nav-item" data-filter="done"><span class="sw"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg></span>완료 일정<span class="nav-count" data-cnt="done"></span></button>
+    </nav>
+
+    <div id="stage">
+      <!-- Priority Canvas -->
+      <section class="view on" id="viewCanvas" role="tabpanel" aria-labelledby="tabCanvas" aria-label="우선순위 보기">
+        <div id="overloadBanner" role="alert">
+          <div class="msg" id="overloadMsg"></div>
+          <button class="chip-btn" id="btnDefer">낮은 중요도 내일로 이동</button>
+        </div>
+        <div id="canvas3d">
+          <svg class="rings" id="ringsSvg" aria-hidden="true"></svg>
+          <div id="world"></div>
+          <div id="emptyMsg" class="empty-state"></div>
+          <button class="chip-btn" id="btnHome" title="화면 맞춤">⌖ 화면 맞춤</button>
+          <div id="canvasHint">휠 확대·축소 · 드래그 이동 · 카드 클릭 포커스</div>
+          <div id="focusPanel">
+            <div id="fpWhy"></div>
+            <div class="fp-btns">
+              <button class="chip-btn" id="fpFocus">▶ 집중 모드</button>
+              <button class="chip-btn" id="fpEdit">수정</button>
+              <button class="chip-btn" id="fpDone">✓ 완료</button>
+              <button class="chip-btn" id="fpClose">닫기</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Timeline -->
+      <section class="view" id="viewTimeline" role="tabpanel" aria-labelledby="tabTimeline" aria-label="타임라인 보기">
+        <div class="tl-wrap">
+          <div class="tl-h">오늘의 타임라인</div>
+          <div class="tl-sub" id="tlSub"></div>
+          <div id="tlList"></div>
+        </div>
+      </section>
+
+      <!-- Calendar -->
+      <section class="view" id="viewCal" role="tabpanel" aria-labelledby="tabCal" aria-label="캘린더 보기">
+        <div class="cal-wrap">
+          <div class="cal-top">
+            <h2 id="calTitle"></h2>
+            <div class="cal-nav">
+              <button class="chip-btn" id="calPrev" aria-label="이전 주">‹</button>
+              <button class="chip-btn" id="calToday">오늘</button>
+              <button class="chip-btn" id="calNext" aria-label="다음 주">›</button>
+            </div>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+      </section>
+
+      <!-- Focus -->
+      <section class="view" id="viewFocus" aria-label="집중 보기">
+        <div class="focus-box">
+          <div class="focus-cat" id="fcCat"></div>
+          <div class="focus-title" id="fcTitle"></div>
+          <div class="focus-due" id="fcDue"></div>
+          <div class="focus-why" id="fcWhy"></div>
+          <div class="focus-timer" id="fcTimer">00:00</div>
+          <div class="focus-timer-lb">집중 시간</div>
+          <div class="focus-prog">
+            <div class="lb"><span>진행률</span><span class="range-val" id="fcProgVal">0%</span></div>
+            <input type="range" id="fcProg" min="0" max="100" step="5" aria-label="진행률">
+          </div>
+          <div class="focus-actions">
+            <button class="btn" id="fcBack">돌아가기</button>
+            <button class="btn" id="fcEdit">수정</button>
+            <button class="btn" id="fcPause">일시정지</button>
+            <button class="btn primary" id="fcDone" style="flex:0 1 auto; padding:11px 28px">완료</button>
+          </div>
+        </div>
+      </section>
+    </div>
+    <aside id="rightList" aria-label="일정 리스트">
+      <h4>일정 리스트</h4>
+      <div id="listItems"></div>
+    </aside>
+  </div>
+
+  <!-- bottom dock -->
+  <div id="dock">
+    <button class="dock-btn primary" id="btnAdd">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>일정 추가
+    </button>
+    <div class="dock-sep"></div>
+    <div class="seg" role="tablist" aria-label="보기 전환">
+      <button id="tabCanvas" data-view="viewCanvas" class="on" role="tab" aria-selected="true" aria-controls="viewCanvas">우선순위</button>
+      <button id="tabTimeline" data-view="viewTimeline" role="tab" aria-selected="false" aria-controls="viewTimeline" tabindex="-1">타임라인</button>
+      <button id="tabCal" data-view="viewCal" role="tab" aria-selected="false" aria-controls="viewCal" tabindex="-1">캘린더</button>
+    </div>
+    <button class="dock-btn" id="btnList" aria-controls="rightList" aria-expanded="false">목록</button>
+  </div>
+
+  <!-- add/edit modal -->
+  <div class="overlay" id="taskOverlay">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
+      <div class="modal-h"><h3 id="taskModalTitle">일정 추가</h3><button class="icon-btn" data-close="taskOverlay" aria-label="닫기">✕</button></div>
+      <div class="modal-b">
+        <div><label class="flabel" for="fTitle">일정 제목</label><input id="fTitle" placeholder="예: 프로젝트 발표 자료 완성" autocomplete="off"></div>
+        <div class="frow">
+          <div><label class="flabel" for="fDate">마감 날짜 (비우면 미정)</label><input id="fDate" type="date"></div>
+          <div><label class="flabel" for="fTime">시간 (비우면 그날까지)</label><input id="fTime" type="time"></div>
+        </div>
+        <div>
+          <label class="flabel">중요도</label>
+          <div class="seg-full" id="fImp">
+            <button data-v="low">낮음</button><button data-v="mid" class="on">보통</button><button data-v="high">중요</button>
+          </div>
+        </div>
+        <div>
+          <label class="flabel">카테고리</label>
+          <div class="cat-pick" id="fCat"></div>
+        </div>
+        <button class="detail-toggle" id="btnDetail">상세 설정 열기 ▾</button>
+        <div id="detailFields">
+          <div class="frow">
+            <div><label class="flabel" for="fEst">예상 소요 시간 (분)</label><input id="fEst" type="number" min="5" step="5" value="60"></div>
+            <div><label class="flabel" for="fProgIn">진행률: <span class="range-val" id="fProgLbl">0%</span></label><input type="range" id="fProgIn" min="0" max="100" step="5" value="0" style="margin-top:12px"></div>
+          </div>
+          <div><label class="flabel" for="fMemo">메모</label><textarea id="fMemo" rows="2" placeholder="선택 사항"></textarea></div>
+        </div>
+      </div>
+      <div class="modal-f">
+        <button class="btn danger" id="btnDelete" style="display:none">삭제</button>
+        <button class="btn primary" id="btnSave">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- settings modal -->
+  <div class="overlay" id="setOverlay">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+      <div class="modal-h"><h3 id="setTitle">설정</h3><button class="icon-btn" data-close="setOverlay" aria-label="닫기">✕</button></div>
+      <div class="modal-b">
+        <div class="set-row">
+          <div><div class="t">하루 사용 가능 시간</div><div class="s">일정 과부하 감지 기준입니다</div></div>
+          <input type="number" id="setHours" min="1" max="16" step="0.5">
+        </div>
+        <div class="set-row">
+          <div><div class="t">브라우저 알림</div><div class="s">마감 30분 전에 알려드립니다</div></div>
+          <button class="chip-btn" id="setNotif">알림 켜기</button>
+        </div>
+        <div class="set-row" style="flex-direction:column; align-items:stretch; gap:9px">
+          <div><div class="t">Google 캘린더 연동</div><div class="s" id="gcalStatus">OAuth 클라이언트 ID 입력 후 연결하세요</div></div>
+          <div style="display:flex; gap:8px">
+            <input id="gcalClientId" placeholder="클라이언트 ID" autocomplete="off">
+            <button class="chip-btn" id="gcalConnect" style="flex:0 0 auto">연결</button>
+          </div>
+          <div style="display:flex; gap:8px">
+            <button class="chip-btn" id="gcalPullBtn" style="flex:1">캘린더에서 가져오기</button>
+            <button class="chip-btn" id="gcalPushBtn" style="flex:1">캘린더로 내보내기</button>
+          </div>
+        </div>
+        <div class="set-row">
+          <div><div class="t">데이터 내보내기</div><div class="s">일정과 설정을 JSON 파일로 저장합니다</div></div>
+          <button class="chip-btn" id="setExport">내보내기</button>
+        </div>
+        <div class="set-row">
+          <div><div class="t">데이터 가져오기</div><div class="s">내보낸 JSON 파일에서 복원합니다</div></div>
+          <button class="chip-btn" id="setImport">가져오기</button>
+        </div>
+        <input type="file" id="setImportFile" accept=".json,application/json" style="display:none" aria-hidden="true">
+        <div class="set-row">
+          <div><div class="t">완료 일정 정리</div><div class="s">완료된 일정을 모두 삭제합니다</div></div>
+          <button class="chip-btn" id="setClearDone">정리</button>
+        </div>
+        <div class="set-row">
+          <div><div class="t">모든 데이터 초기화</div><div class="s">되돌릴 수 없습니다</div></div>
+          <button class="chip-btn" id="setReset" style="color:var(--red)">초기화</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" role="status"></div>
+</div>
+<script>
+"use strict";
+/* ================= FOCUS MAP ================= */
+const CATS = {
+  work:{name:"업무", color:"var(--c-work)", ic:"💼"},
+  personal:{name:"개인", color:"var(--c-personal)", ic:"🌙"},
+  family:{name:"가족", color:"var(--c-family)", ic:"🏠"},
+  meet:{name:"약속", color:"var(--c-meet)", ic:"🤝"},
+  health:{name:"건강", color:"var(--c-health)", ic:"💪"},
+};
+const IMP = {low:{pt:10,lb:"낮음"}, mid:{pt:25,lb:"보통"}, high:{pt:45,lb:"중요"}};
+const LS_TASKS="fm.tasks", LS_SET="fm.settings", LS_THEME="fm.theme";
+
+let tasks = load(LS_TASKS, null);
+let settings = load(LS_SET, {hours:8});
+let filter = "all", searchQ = "", curView = "viewCanvas";
+let editingId = null, focusId = null, focusSec = 0, focusRun = false, focusTick = null;
+let calAnchor = startOfDay(new Date());
+const notified = new Set(load("fm.notified", []));
+
+function load(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }
+function save(){ localStorage.setItem(LS_TASKS, JSON.stringify(tasks)); }
+function saveSet(){ localStorage.setItem(LS_SET, JSON.stringify(settings)); }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function startOfDay(d){ const x = new Date(d); x.setHours(0,0,0,0); return x; }
+function $(s){ return document.querySelector(s); }
+function $$(s){ return [...document.querySelectorAll(s)]; }
+function esc(s){ return (s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+/* ---------- seed ---------- */
+if(!tasks){
+  const now = new Date(), mk = (h,m)=>{ const d=new Date(now); d.setHours(d.getHours()+h, d.getMinutes()+m,0,0); return d.toISOString(); };
+  tasks = [
+    {id:uid(), title:"프로젝트 발표 자료 완성", deadline:mk(4,0), imp:"high", est:90, prog:70, cat:"work", memo:"", done:false, createdAt:now.toISOString()},
+    {id:uid(), title:"캐릭터 외주 검수", deadline:mk(27,0), imp:"high", est:40, prog:0, cat:"work", memo:"수정 요청 사항 정리", done:false, createdAt:now.toISOString()},
+    {id:uid(), title:"주간 보고 메일 발송", deadline:mk(2,30), imp:"mid", est:20, prog:0, cat:"work", memo:"", done:false, createdAt:now.toISOString()},
+    {id:uid(), title:"저녁 러닝 5km", deadline:mk(6,0), imp:"low", est:45, prog:0, cat:"health", memo:"", done:false, createdAt:now.toISOString()},
+    {id:uid(), title:"부모님 안부 전화", deadline:mk(30,0), imp:"mid", est:15, prog:0, cat:"family", memo:"", done:false, createdAt:now.toISOString()},
+    {id:uid(), title:"포트폴리오 사이트 리뉴얼 기획", deadline:mk(24*5,0), imp:"high", est:180, prog:15, cat:"personal", memo:"", done:false, createdAt:now.toISOString()},
+    {id:uid(), title:"치과 정기검진 예약", deadline:mk(24*9,0), imp:"low", est:10, prog:0, cat:"health", memo:"", done:false, createdAt:now.toISOString()},
+    {id:uid(), title:"금요일 저녁 약속 식당 예약", deadline:mk(24*3,-30), imp:"mid", est:10, prog:0, cat:"meet", memo:"", done:false, createdAt:now.toISOString()},
+  ];
+  save();
+}
+
+/* ---------- priority engine ---------- */
+function urgency(ms){ // ms until deadline
+  if(ms < 0) return 100;
+  const h = ms/36e5;
+  if(h <= 3) return 90;
+  const dl = new Date(Date.now()+ms), t0 = startOfDay(new Date());
+  const dayDiff = Math.round((startOfDay(dl) - t0)/864e5);
+  if(dayDiff <= 0) return 75;
+  if(dayDiff === 1) return 55;
+  if(dayDiff <= 3) return 35;
+  if(dayDiff <= 7) return 20;
+  return 10;
+}
+function dueTypeOf(t){ return t.dueType || (t.deadline ? "datetime" : "none"); }
+function hasDue(t){ return dueTypeOf(t) !== "none" && !!t.deadline; }
+function score(t, now = Date.now()){
+  if(!hasDue(t))
+    return Math.round(10 + IMP[t.imp].pt + Math.min(12,(t.est/60)*3) - (t.prog/100)*25);
+  const ms = new Date(t.deadline) - now;
+  const u = urgency(ms);
+  const i = IMP[t.imp].pt;
+  const delay = ms < 0 ? Math.min(20, (-ms/36e5)*2) : 0;      // 지연도
+  const estB = Math.min(12, (t.est/60)*3);                     // 작업시간 보정
+  const progP = (t.prog/100)*25;                               // 진행률 보정
+  return Math.round(u + i + delay + estB - progP);
+}
+function tier(sc){ return sc>=120?"XL" : sc>=95?"L" : sc>=65?"M" : sc>=40?"S" : "XS"; }
+function explain(t){
+  const parts = [];
+  if(!hasDue(t)) parts.push("마감 미정");
+  else{
+    const ms = new Date(t.deadline) - Date.now();
+    if(ms < 0) parts.push("마감 지남");
+    else{
+      const dd = Math.round((startOfDay(new Date(t.deadline)) - startOfDay(new Date()))/864e5);
+      parts.push(dd === 0 ? (ms <= 3*36e5 ? "마감 3시간 이내" : "오늘 마감")
+        : dd === 1 ? "내일 마감" : dd <= 7 ? `${dd}일 뒤 마감` : "마감 여유 있음");
+    }
+  }
+  if(t.imp === "high") parts.push("중요 일정");
+  else if(t.imp === "low") parts.push("중요도 낮음");
+  parts.push(`예상 ${t.est}분`);
+  if(t.prog > 0) parts.push(`진행률 ${t.prog}%`);
+  const tr = tier(score(t));
+  const lvl = tr === "XL" ? "우선순위가 매우 높습니다" : tr === "L" ? "우선순위가 높습니다"
+    : tr === "M" ? "보통 우선순위입니다" : "우선순위가 낮은 편입니다";
+  return `${parts.join(" · ")} → ${lvl}`;
+}
+
+/* ---------- date helpers ---------- */
+function fmtRemain(dl, now = new Date()){
+  const ms = new Date(dl) - now;
+  const abs = Math.abs(ms), h = Math.floor(abs/36e5), m = Math.floor(abs%36e5/6e4), d = Math.floor(abs/864e5);
+  const s = d >= 1 ? `${d}일 ${h%24}시간` : h >= 1 ? `${h}시간 ${m}분` : `${m}분`;
+  return ms < 0 ? `${s} 지남` : `${s} 남음`;
+}
+function fmtDT(dl){
+  const d = new Date(dl), t0 = startOfDay(new Date());
+  const dd = Math.round((startOfDay(d)-t0)/864e5);
+  const hm = d.toLocaleTimeString("ko-KR",{hour:"numeric",minute:"2-digit"});
+  const day = dd===0?"오늘" : dd===1?"내일" : dd===-1?"어제" : d.toLocaleDateString("ko-KR",{month:"numeric",day:"numeric",weekday:"short"});
+  return `${day} ${hm}`;
+}
+function dayLabel(dl){
+  const d = new Date(dl), t0 = startOfDay(new Date());
+  const dd = Math.round((startOfDay(d)-t0)/864e5);
+  return dd===0?"오늘" : dd===1?"내일" : dd===-1?"어제" : d.toLocaleDateString("ko-KR",{month:"numeric",day:"numeric",weekday:"short"});
+}
+function dueLine1(t){
+  if(!hasDue(t)) return "마감 미정";
+  if(dueTypeOf(t) === "date") return dayLabel(t.deadline) + "까지";
+  return fmtDT(t.deadline);
+}
+function dueLine2(t, now = new Date()){
+  if(!hasDue(t)) return "여유 있을 때";
+  if(dueTypeOf(t) === "date"){
+    const dd = Math.round((startOfDay(new Date(t.deadline))-startOfDay(now))/864e5);
+    return dd < 0 ? `${-dd}일 지남` : dd === 0 ? "오늘 마감" : `${dd}일 남음`;
+  }
+  return fmtRemain(t.deadline, now);
+}
+
+/* ---------- filtering ---------- */
+function visibleTasks(){
+  const t0 = startOfDay(new Date()), t1 = new Date(+t0+864e5), w1 = new Date(+t0+7*864e5);
+  return tasks.filter(t => {
+    if(searchQ && !(t.title+" "+(t.memo||"")).toLowerCase().includes(searchQ)) return false;
+    if(filter === "done") return t.done;
+    if(t.done) return false;
+    const dl = new Date(t.deadline);
+    if(filter === "today") return hasDue(t) && dl >= t0 && dl < t1;
+    if(filter === "week") return hasDue(t) && dl >= t0 && dl < w1;
+    if(CATS[filter]) return t.cat === filter;
+    return true;
+  });
+}
+
+/* ---------- 3D camera ---------- */
+const P3 = 1200;
+const cam = {x:0, y:0, z:-60}, camT = {x:0, y:0, z:-60};
+let canvasFocusId = null;
+let dragging = false, dragMoved = false, dSX=0, dSY=0, dBX=0, dBY=0;
+const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const CAM_K = REDUCED ? 1 : .18;
+(function camLoop(){
+  cam.x += (camT.x-cam.x)*CAM_K; cam.y += (camT.y-cam.y)*CAM_K; cam.z += (camT.z-cam.z)*CAM_K;
+  const w = $("#world");
+  if(w) w.style.transform = `translate3d(${cam.x.toFixed(2)}px,${cam.y.toFixed(2)}px,${cam.z.toFixed(2)}px)`;
+  requestAnimationFrame(camLoop);
+})();
+let homeT = {x:0, y:0, z:-60};
+function camHome(){ camT.x = homeT.x; camT.y = homeT.y; camT.z = homeT.z; }
+
+/* ---------- render: canvas ---------- */
+function renderCanvas(){
+  const now = Date.now();
+  if(canvasFocusId) unfocusCard(true);
+  const list = visibleTasks().map(t => ({...t, sc:score(t,now)}));
+  const overdue = filter==="done" ? [] : list.filter(t => hasDue(t) && new Date(t.deadline) < now);
+  const rest = (filter==="done" ? list : list.filter(t => !hasDue(t) || new Date(t.deadline) >= now)).sort((a,b) => b.sc - a.sc);
+  const em = $("#emptyMsg");
+  em.style.display = list.length ? "none" : "flex";
+  em.innerHTML = filter==="done" ? "아직 완료한 일정이 없습니다." : "표시할 일정이 없습니다.<br><b>+ 일정 추가</b> 버튼으로 시작해 보세요.";
+  const maxSc = rest.length ? rest[0].sc : 0;
+  const ranked = [...overdue, ...rest].sort((a,b) => b.sc - a.sc);
+  const isMobile = innerWidth <= 760;
+  const Dmax = isMobile ? 240 : 310, Dmin = isMobile ? 92 : 104;
+  const dia = {};
+  ranked.forEach((t,i) => {
+    dia[t.id] = ranked.length <= 1 ? Dmax : Math.round(Dmax - (Dmax - Dmin) * (i/(ranked.length-1)));
+  });
+  const szOf = d => {
+    const r = (d - Dmin) / ((Dmax - Dmin) || 1);
+    return r >= .8 ? "XL" : r >= .6 ? "L" : r >= .35 ? "M" : r >= .15 ? "S" : "XS";
+  };
+  let html = "";
+  overdue.forEach((t,i) => {
+    const x = (i-(overdue.length-1)/2)*250, y = -330, z = 90;
+    html += cardHTML(t, true, x, y, z, 1, dia[t.id], szOf(dia[t.id]));
+  });
+  rest.forEach((t,i) => {
+    const z = Math.max(-850, -(maxSc-t.sc)*7 - (filter==="done" ? i*28 : 0));
+    const spread = (P3 - z)/P3;
+    const r = i===0 ? 0 : (150 + 118*Math.sqrt(i))*spread;
+    const a = i*2.39996;
+    const x = Math.cos(a)*r, y = Math.sin(a)*r*0.72;
+    const dp = 1 - Math.min(.4, (-z)/850*.4);
+    html += cardHTML(t, false, x, y, z, dp, dia[t.id], szOf(dia[t.id]));
+  });
+  $("#world").innerHTML = html;
+  homeT = rest.length ? {x:0, y:0, z:375}
+        : overdue.length ? {x:0, y:330, z:290}
+        : {x:0, y:0, z:-60};
+  bindCards();
+  renderRings();
+}
+
+function focusCard(id){
+  const el = document.querySelector(`.card[data-id="${id}"]`); if(!el) return;
+  $$("#world .card.fcs").forEach(c => {
+    if(c === el) return;
+    if(c.dataset.origSz){ c.classList.remove("sz-XL"); c.classList.add(c.dataset.origSz); delete c.dataset.origSz; }
+    if(c.dataset.origW !== undefined){ c.style.width = c.dataset.origW; c.style.height = c.dataset.origH; delete c.dataset.origW; delete c.dataset.origH; }
+    c.classList.remove("fcs");
+  });
+  canvasFocusId = id;
+  const cx = +el.dataset.x, cy = +el.dataset.y, cz = +el.dataset.z;
+  camT.x = -cx; camT.y = -cy + 10; camT.z = 380 - cz;
+  $$("#world .card").forEach(c => {
+    if(c === el){
+      c.classList.add("fcs"); c.classList.remove("dim","gone");
+      const szCls = [...c.classList].find(x => x.startsWith("sz-"));
+      if(szCls && szCls !== "sz-XL"){
+        c.dataset.origSz = szCls;
+        c.classList.remove(szCls); c.classList.add("sz-XL");
+      }
+      if(c.dataset.origW === undefined){
+        c.dataset.origW = c.style.width; c.dataset.origH = c.style.height;
+      }
+      const fd = innerWidth <= 760 ? 240 : 308;
+      c.style.width = fd + "px"; c.style.height = fd + "px";
+    }
+    else{
+      c.classList.add("dim");
+      if(+(c.dataset.z||0) + camT.z > 520) c.classList.add("gone");
+    }
+  });
+  const base = el.style.transform;
+  if(el.animate && !REDUCED) el.animate(
+    [{transform:base},
+     {transform:base+" rotateY(10deg) scale(1.04)", offset:.45},
+     {transform:base}],
+    {duration:420, easing:"cubic-bezier(.65,0,.35,1)"}
+  );
+  const ft = tasks.find(x => x.id === id);
+  $("#fpWhy").textContent = ft ? explain(ft) : "";
+  $("#focusPanel").classList.add("show");
+}
+function unfocusCard(goHome = true){
+  canvasFocusId = null;
+  $$("#world .card").forEach(c => {
+    if(c.classList.contains("fcs")){
+      if(c.dataset.origSz){ c.classList.remove("sz-XL"); c.classList.add(c.dataset.origSz); delete c.dataset.origSz; }
+      if(c.dataset.origW !== undefined){ c.style.width = c.dataset.origW; c.style.height = c.dataset.origH; delete c.dataset.origW; delete c.dataset.origH; }
+    }
+    c.classList.remove("dim","gone","fcs");
+  });
+  $("#focusPanel").classList.remove("show");
+  if(goHome) camHome();
+}
+
+function cardHTML(t, isOverdue, px = 0, py = 0, pz = 0, dp = 1, diam = 0, szCls = ""){
+  const c = CATS[t.cat], now = new Date();
+  const ms = hasDue(t) ? new Date(t.deadline) - now : Infinity;
+  const urgentSoon = !t.done && ms >= 0 && ms <= 3*36e5;
+  const sz = szCls || (t.done ? "S" : tier(t.sc ?? score(t)));
+  const cls = ["card", "sz-"+sz, "imp-"+t.imp];
+  if(isOverdue) cls.push("overdue"); else if(urgentSoon) cls.push("urgent");
+  const warn = isOverdue ? `<span class="warn">⚠</span> ` : "";
+  const impTag = t.imp === "high" && !t.done ? `<span class="imp-flag">중요</span>` : "";
+  const x = Math.round(px), y = Math.round(py), z = Math.round(pz);
+  const st = `transform:translate(-50%,-50%) translate3d(${x}px,${y}px,${z}px);--dp:${dp.toFixed(2)};${diam ? `width:${diam}px;height:${diam}px;` : ""}${t.done ? "opacity:.55;" : ""}`;
+  const estLb = t.est >= 60 ? Math.floor(t.est/60)+"시간"+(t.est%60 ? " "+t.est%60+"분" : "") : t.est+"분";
+  const chk = t.done
+    ? `<span class="chk on" aria-hidden="true">✓</span>`
+    : `<button class="chk" data-done="${t.id}" title="완료" aria-label="${esc(t.title)} 완료 처리">✓</button>`;
+  const alab = `${esc(t.title)}, ${esc(dueLine1(t))}, 중요도 ${IMP[t.imp].lb}${t.done ? ", 완료됨" : ""}`;
+  return `<div class="${cls.join(" ")}" data-id="${t.id}" data-x="${x}" data-y="${y}" data-z="${z}" style="${st}" role="button" tabindex="0" aria-label="${alab}">
+    <span class="ring" style="--p:${t.prog};--rc:${c.color}" aria-hidden="true"></span>
+    <button class="del" data-del="${t.id}" title="삭제" aria-label="${esc(t.title)} 삭제">✕</button>
+    <span class="cat-ic" style="background:color-mix(in srgb, ${c.color} 16%, transparent)">${c.ic}</span>
+    ${impTag}
+    <div class="title">${esc(t.title)}</div>
+    <div class="due ${isOverdue?"past":""}">${warn}${dueLine1(t)}<br>${dueLine2(t, now)}</div>
+    <div class="meta">진행률 ${t.prog}% · 예상 ${estLb}</div>
+    ${chk}
+  </div>`;
+}
+function bindCards(){
+  $$(".card[data-id]").forEach(el => {
+    el.addEventListener("click", e => {
+      if(e.target.closest("[data-done]")) return;
+      if(dragMoved) return;
+      if(canvasFocusId === el.dataset.id) unfocusCard(true);
+      else focusCard(el.dataset.id);
+    });
+    el.addEventListener("keydown", e => {
+      if(e.key === "Enter" || e.key === " "){ e.preventDefault(); focusCard(el.dataset.id); }
+    });
+  });
+  $$("[data-done]").forEach(b => b.addEventListener("click", e => { e.stopPropagation(); completeTask(b.dataset.done); }));
+  $$("[data-del]").forEach(b => b.addEventListener("click", e => { e.stopPropagation(); deleteTask(b.dataset.del); }));
+}
+function deleteTask(id){
+  const t = tasks.find(x => x.id === id); if(!t) return;
+  if(!confirm(`"${t.title}" 일정을 삭제할까요?`)) return;
+  if(canvasFocusId === id) unfocusCard(true);
+  tasks = tasks.filter(x => x.id !== id); save(); renderAll();
+  toast("일정을 삭제했습니다", "실행 취소", () => { tasks.push(t); save(); renderAll(); });
+}
+(function(){
+  const cv = $("#canvas3d");
+  cv.addEventListener("wheel", e => {
+    e.preventDefault();
+    if(canvasFocusId) unfocusCard(false);
+    camT.z = Math.min(520, Math.max(-640, camT.z - e.deltaY*0.7));
+  }, {passive:false});
+  cv.addEventListener("pointerdown", e => {
+    if(e.button !== 0) return;
+    dragging = true; dragMoved = false;
+    dSX = e.clientX; dSY = e.clientY; dBX = camT.x; dBY = camT.y;
+  });
+  cv.addEventListener("pointermove", e => {
+    if(!dragging) return;
+    const dx = e.clientX - dSX, dy = e.clientY - dSY;
+    if(!dragMoved && Math.abs(dx) + Math.abs(dy) > 6){
+      dragMoved = true;
+      try{ cv.setPointerCapture(e.pointerId); }catch(_){}
+      cv.classList.add("dragging");
+    }
+    if(dragMoved){ camT.x = dBX + dx; camT.y = dBY + dy; }
+  });
+  const end = () => { dragging = false; cv.classList.remove("dragging"); setTimeout(() => dragMoved = false, 0); };
+  cv.addEventListener("pointerup", end);
+  cv.addEventListener("pointercancel", end);
+  cv.addEventListener("click", e => { if(e.target === cv && !dragMoved && canvasFocusId) unfocusCard(true); });
+  $("#btnHome").addEventListener("click", e => { e.stopPropagation(); unfocusCard(false); camHome(); });
+  $("#fpFocus").addEventListener("click", () => { const id = canvasFocusId; unfocusCard(true); if(id) openFocus(id); });
+  $("#fpEdit").addEventListener("click", () => { if(canvasFocusId) openTaskModal(canvasFocusId); });
+  $("#fpDone").addEventListener("click", () => { const id = canvasFocusId; unfocusCard(true); if(id) completeTask(id); });
+  $("#fpClose").addEventListener("click", () => unfocusCard(true));
+})();
+
+function renderRings(){
+  const sc = $("#canvas3d"), r = sc.getBoundingClientRect();
+  const cx = r.left + r.width/2, cy = r.top + r.height/2;
+  const maxR = Math.max(r.width, r.height) * 0.75;
+  let circles = "";
+  for(let i=1; i<=5; i++){
+    circles += `<circle cx="${cx}" cy="${cy}" r="${maxR*i/5}" fill="none" stroke="var(--ring)" stroke-width="${i===1?2:1.4}"/>`;
+  }
+  const svg = $("#ringsSvg");
+  svg.setAttribute("width", innerWidth); svg.setAttribute("height", innerHeight);
+  svg.style.left = "0"; svg.style.top = "0";
+  svg.innerHTML = circles;
+}
+
+/* ---------- render: timeline ---------- */
+function renderTimeline(){
+  const t0 = startOfDay(new Date()), t1 = new Date(+t0+864e5);
+  const list = tasks.filter(t => !t.done && hasDue(t) && new Date(t.deadline) >= t0 && new Date(t.deadline) < t1)
+                    .sort((a,b) => new Date(a.deadline) - new Date(b.deadline));
+  const totalMin = list.reduce((s,t) => s + t.est*(1-t.prog/100), 0);
+  $("#tlSub").textContent = list.length
+    ? `오늘 일정 ${list.length}개 · 남은 예상 작업 ${Math.round(totalMin/60*10)/10}시간`
+    : "오늘 마감인 일정이 없습니다.";
+  let html = "", prev = null;
+  list.forEach(t => {
+    const d = new Date(t.deadline);
+    if(prev){
+      const gapMin = Math.round((d - prev)/6e4);
+      if(gapMin >= 45) html += `<div class="tl-gap">비는 시간 약 ${gapMin>=60 ? Math.floor(gapMin/60)+"시간 "+(gapMin%60||"")+(gapMin%60?"분":"") : gapMin+"분"}</div>`;
+    }
+    prev = d;
+    const c = CATS[t.cat];
+    html += `<div class="tl-item">
+      <div class="tl-time">${d.toLocaleTimeString("ko-KR",{hour:"numeric",minute:"2-digit"})}</div>
+      <div class="tl-rail"><div class="nd" style="border-color:${c.color}"></div><div class="ln"></div></div>
+      <div class="tl-card" data-id="${t.id}">
+        <div class="t">${esc(t.title)}</div>
+        <div class="m">${c.name} · 예상 ${t.est}분 · 진행률 ${t.prog}% · ${fmtRemain(t.deadline)}</div>
+      </div>
+    </div>`;
+  });
+  $("#tlList").innerHTML = html || `<div class="empty-state">오늘은 여유로운 하루입니다 🌿</div>`;
+  $$("#tlList .tl-card").forEach(el => el.addEventListener("click", () => openFocus(el.dataset.id)));
+}
+
+/* ---------- render: calendar (week) ---------- */
+function renderCal(){
+  const anchor = new Date(calAnchor);
+  const dow = (anchor.getDay()+6)%7; // Mon=0
+  const mon = new Date(+startOfDay(anchor) - dow*864e5);
+  const sun = new Date(+mon + 6*864e5);
+  $("#calTitle").textContent = `${mon.getMonth()+1}월 ${mon.getDate()}일 – ${sun.getMonth()+1}월 ${sun.getDate()}일`;
+  const dows = ["월","화","수","목","금","토","일"];
+  let html = dows.map(d => `<div class="cal-dow">${d}</div>`).join("");
+  const today = +startOfDay(new Date());
+  for(let i=0;i<7;i++){
+    const day = new Date(+mon + i*864e5), next = new Date(+day + 864e5);
+    const evs = tasks.filter(t => { if(!hasDue(t)) return false; const dl = new Date(t.deadline); return dl >= day && dl < next; })
+                     .sort((a,b) => new Date(a.deadline)-new Date(b.deadline));
+    html += `<div class="cal-cell ${+day===today?"today":""}">
+      <div class="d">${day.getDate()}</div>
+      ${evs.map(t => `<button class="cal-ev ${t.done?"dn":""}" data-id="${t.id}" style="border-left-color:${CATS[t.cat].color}">${dueTypeOf(t)==="date" ? "종일" : new Date(t.deadline).toLocaleTimeString("ko-KR",{hour:"numeric",minute:"2-digit"})} ${esc(t.title)}</button>`).join("")}
+    </div>`;
+  }
+  $("#calGrid").innerHTML = html;
+  $$(".cal-ev").forEach(el => el.addEventListener("click", () => openTaskModal(el.dataset.id)));
+}
+
+/* ---------- status + overload ---------- */
+function renderStatus(){
+  const now = new Date(), t0 = startOfDay(now), t1 = new Date(+t0+864e5);
+  const todays = tasks.filter(t => !t.done && hasDue(t) && new Date(t.deadline) >= now && new Date(t.deadline) < t1);
+  const over = tasks.filter(t => !t.done && hasDue(t) && new Date(t.deadline) < now);
+  const el = $("#statusMsg");
+  if(over.length) el.innerHTML = `마감이 지난 일정이 <strong>${over.length}개</strong> 있습니다`;
+  else if(todays.length){
+    const next = todays.sort((a,b)=>new Date(a.deadline)-new Date(b.deadline))[0];
+    el.innerHTML = `오늘 일정 <strong>${todays.length}개</strong> · 가장 급한 일정까지 <strong>${fmtRemain(next.deadline).replace(" 남음","")}</strong> 남았습니다`;
+  } else el.innerHTML = `오늘 남은 마감 일정이 없습니다`;
+
+  // overload
+  const todayAll = tasks.filter(t => !t.done && hasDue(t) && new Date(t.deadline) >= t0 && new Date(t.deadline) < t1);
+  const needH = todayAll.reduce((s,t) => s + t.est*(1-t.prog/100), 0)/60;
+  const banner = $("#overloadBanner");
+  if(needH > settings.hours){
+    banner.classList.add("show");
+    $("#overloadMsg").innerHTML = `오늘 필요한 작업시간은 <b>${Math.round(needH*10)/10}시간</b>이지만, 사용 가능한 시간은 <b>${settings.hours}시간</b>입니다.`;
+  } else banner.classList.remove("show");
+
+  // sidebar counts
+  const w1 = new Date(+t0+7*864e5);
+  const cnt = {
+    all: tasks.filter(t=>!t.done).length,
+    today: tasks.filter(t=>{ if(t.done) return false; const dl=new Date(t.deadline); return dl >= t0 && dl < t1; }).length,
+    week: tasks.filter(t=>{ if(t.done) return false; const dl=new Date(t.deadline); return dl >= t0 && dl < w1; }).length,
+    done: tasks.filter(t=>t.done).length,
+  };
+  $$("[data-cnt]").forEach(el => el.textContent = cnt[el.dataset.cnt] || "");
+  renderList();
+}
+
+function liRow(t){
+  const ms = hasDue(t) ? new Date(t.deadline) - Date.now() : Infinity;
+  const urgent = !t.done && ms < 3*36e5;
+  const c = CATS[t.cat];
+  return `<div class="li-row ${t.done?"done":""} ${urgent?"urgent":""}" data-id="${t.id}" role="button" tabindex="0">
+    <button class="li-chk" aria-label="완료 전환">✓</button>
+    <div class="li-main">
+      <div class="li-title">${esc(t.title)}</div>
+      <div class="li-sub">${t.done ? "완료" : dueLine1(t)+" · "+dueLine2(t)}</div>
+    </div>
+    <span class="li-dot" style="background:${c.color}"></span>
+  </div>`;
+}
+function renderList(){
+  const box = $("#listItems"); if(!box) return;
+  const now = Date.now();
+  const act = tasks.filter(t => !t.done).map(t => ({...t, sc:score(t,now)})).sort((a,b) => b.sc - a.sc);
+  const done = tasks.filter(t => t.done).sort((a,b) => new Date(b.completedAt||0) - new Date(a.completedAt||0));
+  let html = act.map(liRow).join("");
+  if(done.length) html += `<div class="li-sep">완료 ${done.length}</div>` + done.map(liRow).join("");
+  box.innerHTML = html || `<div class="li-empty">일정이 없습니다</div>`;
+  $$("#listItems .li-row").forEach(r => {
+    const go = () => {
+      const t = tasks.find(x => x.id === r.dataset.id); if(!t) return;
+      if(t.done){ openTaskModal(t.id); return; }
+      if(curView !== "viewCanvas") switchView("viewCanvas");
+      if(!document.querySelector(`#world .card[data-id="${t.id}"]`)){
+        filter = "all";
+        setActiveFilter("all");
+        renderCanvas();
+      }
+      focusCard(t.id);
+    };
+    r.addEventListener("click", e => { if(!e.target.closest(".li-chk")) go(); });
+    r.addEventListener("keydown", e => { if(e.key === "Enter") go(); });
+  });
+  $$("#listItems .li-chk").forEach(b => b.addEventListener("click", e => {
+    e.stopPropagation();
+    const t = tasks.find(x => x.id === b.closest(".li-row").dataset.id); if(!t) return;
+    if(t.done){
+      t.done = false; t.completedAt = null; t.prog = Math.min(t.prog, 90);
+      save(); renderAll(); toast("일정을 다시 활성화했습니다");
+    } else completeTask(t.id);
+  }));
+}
+
+/* ---------- actions ---------- */
+function completeTask(id){
+  const t = tasks.find(x => x.id === id); if(!t) return;
+  const el = document.querySelector(`.card[data-id="${id}"]`);
+  const fin = () => { t.done = true; t.prog = 100; t.completedAt = new Date().toISOString(); save(); renderAll();
+    const left = tasks.filter(x=>!x.done && +startOfDay(new Date(x.deadline))===+startOfDay(new Date())).length;
+    toast(`완료! ${left ? `오늘 남은 일정 ${left}개` : "오늘 일정을 모두 마쳤습니다 🎉"}`); };
+  if(el && el.animate && !REDUCED){
+    el.animate([{opacity:1},{opacity:0, transform:el.style.transform+" scale(.35)"}],
+      {duration:320, easing:"cubic-bezier(.65,0,.35,1)", fill:"forwards"});
+    setTimeout(fin, 320);
+  } else fin();
+}
+function deferLowTasks(){
+  const t0 = startOfDay(new Date()), t1 = new Date(+t0+864e5);
+  let n = 0;
+  tasks.forEach(t => {
+    if(!t.done && t.imp === "low" && new Date(t.deadline) >= t0 && new Date(t.deadline) < t1){
+      const d = new Date(t.deadline); d.setDate(d.getDate()+1); t.deadline = d.toISOString(); n++;
+    }
+  });
+  save(); renderAll();
+  toast(n ? `중요도가 낮은 일정 ${n}개를 내일로 옮겼습니다` : "옮길 수 있는 낮은 중요도 일정이 없습니다");
+}
+
+/* ---------- modal: add/edit ---------- */
+let fImpV = "mid", fCatV = "work";
+function buildCatPick(){
+  $("#fCat").innerHTML = Object.entries(CATS).map(([k,c]) =>
+    `<button data-v="${k}" class="${k===fCatV?"on":""}"><span class="cd" style="background:${c.color}"></span>${c.name}</button>`).join("");
+  $$("#fCat button").forEach(b => b.addEventListener("click", () => { fCatV = b.dataset.v; buildCatPick(); }));
+}
+function openTaskModal(id){
+  editingId = id || null;
+  const t = id ? tasks.find(x => x.id === id) : null;
+  $("#taskModalTitle").textContent = t ? "일정 수정" : "일정 추가";
+  $("#btnDelete").style.display = t ? "block" : "none";
+  const d = t && hasDue(t) ? new Date(t.deadline) : null;
+  $("#fTitle").value = t ? t.title : "";
+  $("#fDate").value = d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}` : "";
+  $("#fTime").value = (d && dueTypeOf(t) === "datetime") ? `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}` : "";
+  fImpV = t ? t.imp : "mid"; fCatV = t ? t.cat : "work";
+  $$("#fImp button").forEach(b => b.classList.toggle("on", b.dataset.v === fImpV));
+  buildCatPick();
+  $("#fEst").value = t ? t.est : 60;
+  $("#fProgIn").value = t ? t.prog : 0; $("#fProgLbl").textContent = (t?t.prog:0)+"%";
+  $("#fMemo").value = t ? (t.memo||"") : "";
+  openOv("taskOverlay", "#fTitle");
+}
+function saveTask(){
+  const title = $("#fTitle").value.trim();
+  if(!title){ toast("일정 제목을 입력해 주세요"); $("#fTitle").focus(); return; }
+  const dateV = $("#fDate").value, timeV = $("#fTime").value;
+  let dl = null, dt = "none";
+  if(dateV){
+    if(timeV){ dl = new Date(dateV + "T" + timeV); dt = "datetime"; }
+    else     { dl = new Date(dateV + "T23:59:59"); dt = "date"; }
+  }
+  const data = { title, deadline: dl ? dl.toISOString() : null, dueType: dt, imp:fImpV, cat:fCatV,
+    est:Math.max(5, +$("#fEst").value || 60), prog:+$("#fProgIn").value || 0, memo:$("#fMemo").value.trim() };
+  if(editingId){
+    Object.assign(tasks.find(x => x.id === editingId), data);
+  } else {
+    tasks.push({id:uid(), done:false, createdAt:new Date().toISOString(), ...data});
+  }
+  save(); closeOv("taskOverlay"); renderAll();
+  toast(editingId ? "일정을 수정했습니다" : "일정을 추가했습니다");
+}
+
+/* ---------- focus mode ---------- */
+function openFocus(id){
+  const t = tasks.find(x => x.id === id); if(!t || t.done) { if(t) openTaskModal(id); return; }
+  focusId = id; focusSec = 0; focusRun = true;
+  clearInterval(focusTick);
+  focusTick = setInterval(() => { if(focusRun){ focusSec++; $("#fcTimer").textContent = fmtSec(focusSec); } }, 1000);
+  const c = CATS[t.cat];
+  $("#fcCat").innerHTML = `<span class="cd" style="width:9px;height:9px;border-radius:50%;background:${c.color}"></span>${c.name}`;
+  $("#fcTitle").textContent = t.title;
+  $("#fcDue").textContent = `${dueLine1(t)} · ${dueLine2(t)}${t.memo ? " · " + t.memo : ""}`;
+  $("#fcWhy").textContent = explain(t);
+  $("#fcTimer").textContent = "00:00";
+  $("#fcProg").value = t.prog; $("#fcProgVal").textContent = t.prog + "%";
+  $("#fcPause").textContent = "일시정지";
+  // dim other cards briefly then switch view
+  switchView("viewFocus", true);
+}
+function fmtSec(s){
+  const h = Math.floor(s/3600), m = Math.floor(s%3600/60), ss = s%60;
+  return h ? `${h}:${String(m).padStart(2,"0")}:${String(ss).padStart(2,"0")}` : `${String(m).padStart(2,"0")}:${String(ss).padStart(2,"0")}`;
+}
+function closeFocus(){ clearInterval(focusTick); focusId = null; switchView("viewCanvas"); }
+
+/* ---------- view switching ---------- */
+function switchView(v, keepSeg){
+  curView = v;
+  $$(".view").forEach(el => el.classList.toggle("on", el.id === v));
+  if(!keepSeg) $$(".seg [data-view]").forEach(b => {
+    const on = b.dataset.view === v;
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-selected", on);
+    b.tabIndex = on ? 0 : -1;
+  });
+  if(v === "viewCanvas") renderCanvas();
+  if(v === "viewTimeline") renderTimeline();
+  if(v === "viewCal") renderCal();
+}
+function renderAll(){
+  renderStatus();
+  if(curView === "viewCanvas") renderCanvas();
+  else if(curView === "viewTimeline") renderTimeline();
+  else if(curView === "viewCal") renderCal();
+}
+
+/* ---------- notifications ---------- */
+function checkNotify(){
+  if(!("Notification" in window) || Notification.permission !== "granted") return;
+  const now = Date.now();
+  tasks.forEach(t => {
+    if(t.done || !hasDue(t) || notified.has(t.id)) return;
+    const ms = new Date(t.deadline) - now;
+    if(ms > 0 && ms <= 30*6e4){
+      new Notification("FOCUS MAP · 마감 임박", {body:`${t.title} — ${fmtRemain(t.deadline)}`});
+      notified.add(t.id);
+      localStorage.setItem("fm.notified", JSON.stringify([...notified]));
+    }
+  });
+}
+
+/* ---------- toast ---------- */
+let toastT;
+function toast(msg, actLabel, actFn){
+  const el = $("#toast");
+  el.textContent = msg;
+  if(actLabel){
+    const b = document.createElement("button");
+    b.textContent = actLabel;
+    b.addEventListener("click", () => { actFn(); el.classList.remove("show"); });
+    el.appendChild(b);
+  }
+  el.classList.add("show");
+  clearTimeout(toastT);
+  toastT = setTimeout(() => el.classList.remove("show"), actLabel ? 6000 : 2600);
+}
+let lastOpener = null;
+function openOv(id, focusSel){
+  lastOpener = document.activeElement;
+  $("#"+id).classList.add("show");
+  ["header","#main","#dock"].forEach(s => { const el = document.querySelector(s); if(el) el.inert = true; });
+  setTimeout(() => {
+    const f = (focusSel && $(focusSel)) || $("#"+id).querySelector("input,select,textarea,button");
+    if(f) f.focus();
+  }, 60);
+}
+function closeOv(id){
+  $("#"+id).classList.remove("show");
+  if(!$(".overlay.show")){
+    ["header","#main","#dock"].forEach(s => { const el = document.querySelector(s); if(el) el.inert = false; });
+    if(lastOpener && lastOpener.focus){ try{ lastOpener.focus(); }catch(_){} }
+    lastOpener = null;
+  }
+}
+document.addEventListener("keydown", e => {
+  if(e.key !== "Tab") return;
+  const ov = $(".overlay.show"); if(!ov) return;
+  const f = [...ov.querySelectorAll("button,input,select,textarea,[tabindex]:not([tabindex='-1'])")]
+    .filter(x => !x.disabled && x.style.display !== "none" && !x.closest("#detailFields:not(.show)"));
+  if(!f.length) return;
+  const first = f[0], last = f[f.length-1];
+  if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+  else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+});
+
+/* ---------- theme ---------- */
+function applyTheme(th){
+  document.documentElement.dataset.theme = th;
+  localStorage.setItem(LS_THEME, th);
+}
+applyTheme(load(LS_THEME, null) ?? localStorage.getItem(LS_THEME) ?? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+
+/* ---------- wire up ---------- */
+$("#btnTheme").addEventListener("click", () => applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark"));
+$("#btnAdd").addEventListener("click", () => openTaskModal(null));
+$("#btnSave").addEventListener("click", saveTask);
+$("#btnDelete").addEventListener("click", () => {
+  const t = tasks.find(x => x.id === editingId); if(!t) return;
+  if(!confirm(`"${t.title}" 일정을 삭제할까요?`)) return;
+  tasks = tasks.filter(x => x.id !== editingId); save();
+  closeOv("taskOverlay"); renderAll();
+  toast("일정을 삭제했습니다", "실행 취소", () => { tasks.push(t); save(); renderAll(); });
+});
+$("#btnDetail").addEventListener("click", () => {
+  const f = $("#detailFields"); f.classList.toggle("show");
+  $("#btnDetail").textContent = f.classList.contains("show") ? "상세 설정 닫기 ▴" : "상세 설정 열기 ▾";
+});
+$("#fProgIn").addEventListener("input", e => $("#fProgLbl").textContent = e.target.value + "%");
+$$("#fImp button").forEach(b => b.addEventListener("click", () => {
+  fImpV = b.dataset.v;
+  $$("#fImp button").forEach(x => x.classList.toggle("on", x === b));
+}));
+$$("[data-close]").forEach(b => b.addEventListener("click", () => closeOv(b.dataset.close)));
+$$(".overlay").forEach(o => o.addEventListener("click", e => { if(e.target === o) closeOv(o.id); }));
+document.addEventListener("keydown", e => {
+  if(e.key === "Escape"){
+    const ov = $$(".overlay.show");
+    if(ov.length) ov.forEach(o => closeOv(o.id));
+    else if(canvasFocusId) unfocusCard(true);
+  }
+  if((e.key === "n" || e.key === "N") && !e.target.closest("input,textarea,select") && !$(".overlay.show")) openTaskModal(null);
+});
+$$(".seg [data-view]").forEach(b => b.addEventListener("click", () => switchView(b.dataset.view)));
+$(".seg").addEventListener("keydown", e => {
+  if(e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+  e.preventDefault();
+  const tabs = $$(".seg [data-view]");
+  const i = tabs.findIndex(t => t.classList.contains("on"));
+  const n = (i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length;
+  switchView(tabs[n].dataset.view);
+  tabs[n].focus();
+});
+$$(".nav-item[data-filter]").forEach(b => b.addEventListener("click", () => {
+  filter = b.dataset.filter;
+  setActiveFilter(b.dataset.filter);
+  if(curView !== "viewCanvas") switchView("viewCanvas"); else renderCanvas();
+  renderStatus();
+}));
+function setActiveFilter(f){
+  $$(".nav-item[data-filter]").forEach(x => {
+    const on = x.dataset.filter === f;
+    x.classList.toggle("active", on);
+    if(on) x.setAttribute("aria-current","true"); else x.removeAttribute("aria-current");
+  });
+}
+$("#sbPin").addEventListener("click", () => {
+  const sb = $("#sidebar"), on = sb.classList.toggle("pinned");
+  $("#sbPin").setAttribute("aria-expanded", on);
+});
+$("#btnSearch").addEventListener("click", () => {
+  const box = $("#searchBox"); box.classList.toggle("open");
+  if(box.classList.contains("open")) $("#searchInput").focus();
+  else { $("#searchInput").value = ""; searchQ = ""; renderAll(); }
+});
+$("#searchInput").addEventListener("input", e => { searchQ = e.target.value.trim().toLowerCase(); renderAll(); });
+$("#btnDefer").addEventListener("click", deferLowTasks);
+$("#calPrev").addEventListener("click", () => { calAnchor = new Date(+calAnchor - 7*864e5); renderCal(); });
+$("#calNext").addEventListener("click", () => { calAnchor = new Date(+calAnchor + 7*864e5); renderCal(); });
+$("#calToday").addEventListener("click", () => { calAnchor = startOfDay(new Date()); renderCal(); });
+/* focus */
+$("#fcBack").addEventListener("click", closeFocus);
+$("#fcEdit").addEventListener("click", () => { if(focusId) openTaskModal(focusId); });
+$("#fcPause").addEventListener("click", () => { focusRun = !focusRun; $("#fcPause").textContent = focusRun ? "일시정지" : "다시 시작"; });
+$("#fcProg").addEventListener("input", e => {
+  $("#fcProgVal").textContent = e.target.value + "%";
+  const t = tasks.find(x => x.id === focusId);
+  if(t){ t.prog = +e.target.value; save(); renderStatus(); }
+});
+$("#fcDone").addEventListener("click", () => { const id = focusId; closeFocus(); completeTask(id); });
+/* settings */
+$("#btnSettings").addEventListener("click", () => {
+  $("#setHours").value = settings.hours;
+  updateNotifBtn();
+  $("#gcalClientId").value = gcal.clientId || "";
+  gcalStatusMsg(gcalReady() ? "연결됨 ✓" : gcal.clientId ? "연결이 필요합니다 (토큰 만료)" : "OAuth 클라이언트 ID 입력 후 연결하세요");
+  openOv("setOverlay", "#setHours");
+});
+$("#setHours").addEventListener("change", e => {
+  settings.hours = Math.min(16, Math.max(1, +e.target.value || 8)); saveSet(); renderStatus();
+});
+function updateNotifBtn(){
+  const b = $("#setNotif");
+  if(!("Notification" in window)){ b.textContent = "미지원"; b.disabled = true; return; }
+  b.textContent = Notification.permission === "granted" ? "켜짐 ✓" : Notification.permission === "denied" ? "차단됨" : "알림 켜기";
+}
+$("#setNotif").addEventListener("click", async () => {
+  if(!("Notification" in window)) return;
+  await Notification.requestPermission();
+  updateNotifBtn();
+  if(Notification.permission === "granted") toast("마감 30분 전에 알려드릴게요");
+});
+$("#setClearDone").addEventListener("click", () => {
+  const doneList = tasks.filter(t => t.done);
+  if(!doneList.length){ toast("정리할 완료 일정이 없습니다"); return; }
+  if(!confirm(`완료 일정 ${doneList.length}개를 삭제할까요?`)) return;
+  tasks = tasks.filter(t => !t.done); save(); renderAll();
+  toast(`완료 일정 ${doneList.length}개를 정리했습니다`, "실행 취소", () => {
+    tasks = tasks.concat(doneList); save(); renderAll();
+  });
+});
+$("#btnList").addEventListener("click", () => {
+  const r = $("#rightList"), open = r.classList.toggle("open");
+  $("#btnList").setAttribute("aria-expanded", open);
+});
+/* ---------- Google 캘린더 연동 ---------- */
+let gcal = load("fm.gcal", {clientId:"", token:null, exp:0});
+function saveGcal(){ localStorage.setItem("fm.gcal", JSON.stringify(gcal)); }
+function gcalReady(){ return !!gcal.token && Date.now() < gcal.exp - 60e3; }
+function gcalStatusMsg(m){ const el = $("#gcalStatus"); if(el) el.textContent = m; }
+let gcalTokenClient = null;
+function gcalConnect(){
+  const cid = $("#gcalClientId").value.trim();
+  if(!cid){ toast("클라이언트 ID를 입력해 주세요"); return; }
+  if(location.protocol === "file:"){ gcalStatusMsg("file:// 로 열면 연결할 수 없습니다. localhost 서버로 실행해 주세요."); return; }
+  if(!(window.google && google.accounts && google.accounts.oauth2)){ gcalStatusMsg("Google 스크립트 로딩 중입니다. 잠시 후 다시 시도해 주세요."); return; }
+  gcal.clientId = cid; saveGcal();
+  gcalTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: cid,
+    scope: "https://www.googleapis.com/auth/calendar.events",
+    callback: resp => {
+      if(resp.error){ gcalStatusMsg("연결 실패: " + resp.error); return; }
+      gcal.token = resp.access_token;
+      gcal.exp = Date.now() + (resp.expires_in ? resp.expires_in*1000 : 3600e3);
+      saveGcal();
+      gcalStatusMsg("연결됨 ✓ (토큰 약 1시간 유효)");
+      toast("Google 캘린더에 연결되었습니다");
+    },
+  });
+  gcalTokenClient.requestAccessToken();
+}
+async function gcalApi(path, opt = {}){
+  const r = await fetch("https://www.googleapis.com/calendar/v3/" + path, {
+    ...opt,
+    headers: {Authorization:"Bearer " + gcal.token, "Content-Type":"application/json", ...(opt.headers || {})},
+  });
+  if(r.status === 401){ gcal.token = null; saveGcal(); throw new Error("인증이 만료되었습니다. 다시 연결해 주세요."); }
+  if(!r.ok) throw new Error("Google API 오류 (" + r.status + ")");
+  return r.status === 204 ? null : r.json();
+}
+async function gcalPull(){
+  if(!gcalReady()){ toast("먼저 Google 캘린더에 연결해 주세요"); return; }
+  try{
+    const tMin = new Date().toISOString(), tMax = new Date(Date.now() + 30*864e5).toISOString();
+    const data = await gcalApi(`calendars/primary/events?timeMin=${encodeURIComponent(tMin)}&timeMax=${encodeURIComponent(tMax)}&singleEvents=true&orderBy=startTime&maxResults=100`);
+    let added = 0, updated = 0;
+    (data.items || []).forEach(ev => {
+      if(ev.status === "cancelled" || !ev.summary) return;
+      const s = ev.start || {}, e = ev.end || {};
+      const start = s.dateTime ? new Date(s.dateTime) : s.date ? new Date(s.date + "T18:00:00") : null;
+      if(!start) return;
+      const end = e.dateTime ? new Date(e.dateTime) : null;
+      const est = end ? Math.min(480, Math.max(5, Math.round((end - start)/6e4))) : 60;
+      const ex = tasks.find(t => t.gcalId === ev.id);
+      if(ex){
+        if(!ex.done){ ex.title = ev.summary; ex.deadline = start.toISOString(); ex.est = est; updated++; }
+      } else {
+        tasks.push({id:uid(), gcalId:ev.id, title:ev.summary, deadline:start.toISOString(), dueType:"datetime",
+          imp:"mid", est, prog:0, cat:"meet", memo:ev.description ? String(ev.description).slice(0,200) : "",
+          done:false, createdAt:new Date().toISOString()});
+        added++;
+      }
+    });
+    save(); renderAll();
+    toast(`가져오기 완료: 새 일정 ${added}개, 갱신 ${updated}개`);
+  }catch(err){ toast(err.message); gcalStatusMsg(gcal.token ? "오류: " + err.message : "연결이 만료되었습니다. 다시 연결해 주세요."); }
+}
+async function gcalPush(){
+  if(!gcalReady()){ toast("먼저 Google 캘린더에 연결해 주세요"); return; }
+  const list = tasks.filter(t => !t.done && !t.gcalId && hasDue(t));
+  if(!list.length){ toast("내보낼 새 일정이 없습니다 (이미 연동된 일정은 제외)"); return; }
+  try{
+    let n = 0;
+    for(const t of list){
+      const end = new Date(t.deadline);
+      const start = new Date(+end - Math.max(15, t.est)*6e4);
+      const ev = await gcalApi("calendars/primary/events", {method:"POST", body:JSON.stringify({
+        summary: t.title,
+        description: (t.memo ? t.memo + "\n" : "") + "FOCUS MAP · 중요도 " + IMP[t.imp].lb + " · 진행률 " + t.prog + "%",
+        start: {dateTime: start.toISOString()},
+        end: {dateTime: end.toISOString()},
+      })});
+      t.gcalId = ev.id; n++;
+    }
+    save(); renderAll();
+    toast(`내보내기 완료: ${n}개 일정을 캘린더에 추가했습니다`);
+  }catch(err){ toast(err.message); }
+}
+$("#gcalConnect").addEventListener("click", gcalConnect);
+$("#gcalPullBtn").addEventListener("click", gcalPull);
+$("#gcalPushBtn").addEventListener("click", gcalPush);
+
+$("#setExport").addEventListener("click", () => {
+  const data = {app:"focus-map", version:1, exportedAt:new Date().toISOString(), tasks, settings};
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  const d = new Date();
+  a.download = `focus-map-backup-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast("백업 파일을 내려받았습니다");
+});
+function validateImport(obj){
+  if(!obj || typeof obj !== "object" || !Array.isArray(obj.tasks)) return null;
+  const clean = [];
+  for(const t of obj.tasks){
+    if(!t || typeof t.title !== "string" || !t.title.trim()) return null;
+    const dt = ["none","date","datetime"].includes(t.dueType) ? t.dueType : (t.deadline ? "datetime" : "none");
+    if(dt !== "none" && (!t.deadline || isNaN(new Date(t.deadline)))) return null;
+    clean.push({
+      id: typeof t.id === "string" ? t.id : uid(),
+      title: t.title,
+      deadline: dt === "none" ? null : new Date(t.deadline).toISOString(),
+      dueType: dt,
+      imp: IMP[t.imp] ? t.imp : "mid",
+      cat: CATS[t.cat] ? t.cat : "work",
+      est: Math.max(5, +t.est || 60),
+      prog: Math.min(100, Math.max(0, +t.prog || 0)),
+      memo: typeof t.memo === "string" ? t.memo : "",
+      done: !!t.done,
+      createdAt: t.createdAt || new Date().toISOString(),
+      completedAt: t.completedAt || null,
+      ...(typeof t.gcalId === "string" ? {gcalId:t.gcalId} : {}),
+    });
+  }
+  return clean;
+}
+$("#setImport").addEventListener("click", () => $("#setImportFile").click());
+$("#setImportFile").addEventListener("change", e => {
+  const f = e.target.files[0]; e.target.value = ""; if(!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    let obj = null;
+    try{ obj = JSON.parse(rd.result); }catch(_){}
+    const clean = obj && validateImport(obj);
+    if(!clean){ toast("올바른 백업 파일이 아닙니다. 기존 데이터는 유지됩니다."); return; }
+    if(!confirm(`현재 일정 ${tasks.length}개를 백업의 ${clean.length}개로 덮어씁니다. 계속할까요?`)) return;
+    tasks = clean;
+    if(obj.settings && typeof obj.settings.hours === "number") settings.hours = obj.settings.hours;
+    save(); saveSet(); renderAll();
+    toast(`일정 ${clean.length}개를 가져왔습니다`);
+  };
+  rd.readAsText(f);
+});
+
+$("#setReset").addEventListener("click", () => {
+  if(confirm("모든 일정 데이터를 삭제할까요? 되돌릴 수 없습니다.")){
+    localStorage.removeItem(LS_TASKS); localStorage.removeItem("fm.notified"); location.reload();
+  }
+});
+addEventListener("resize", () => { if(curView === "viewCanvas") renderRings(); });
+renderStatus();
+renderCanvas();
+setInterval(() => {
+  if(canvasFocusId) renderStatus();
+  else renderAll();
+  checkNotify();
+}, 60e3);
+</script>
+</body>
+</html>
