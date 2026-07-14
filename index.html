@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FOCUS MAP — 중요한 일은 크게, 급한 일은 가까이</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
 :root{
   --bg:#F2F3F5; --bg-deep:#E9EAEE; --surface:#FFFFFF; --surface-2:#F7F8FA;
@@ -364,6 +368,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:20px; hei
       <button class="icon-btn" id="btnSearch" title="검색" aria-label="검색">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       </button>
+      <button class="icon-btn" id="btnAcct" title="로그인" aria-label="로그인">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/></svg>
+      </button>
       <button class="icon-btn" id="btnTheme" title="테마 전환" aria-label="테마 전환">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
       </button>
@@ -562,6 +569,20 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:20px; hei
     </div>
   </div>
 
+  <div class="overlay" id="authOverlay">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="authTitle" style="max-width:400px">
+      <div class="modal-h"><h3 id="authTitle">로그인</h3><button class="icon-btn" data-close="authOverlay" aria-label="닫기">✕</button></div>
+      <div class="modal-b">
+        <div><label class="flabel" for="aEmail">이메일</label><input id="aEmail" type="email" autocomplete="email" placeholder="you@example.com"></div>
+        <div><label class="flabel" for="aPw">비밀번호 (6자 이상)</label><input id="aPw" type="password" autocomplete="current-password"></div>
+        <div id="authErr" style="color:var(--red); font-size:12.5px; font-weight:600; display:none"></div>
+        <button class="btn primary" id="authGo">로그인</button>
+        <button class="detail-toggle" id="authSwap">계정이 없나요? 회원가입 →</button>
+        <div style="font-size:11.5px; color:var(--ink-3); line-height:1.6">계정마다 일정이 따로 저장되고, 어느 기기에서든 로그인하면 내 일정이 동기화됩니다.</div>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" role="status"></div>
 </div>
 <script>
@@ -581,12 +602,16 @@ let tasks = load(LS_TASKS, null);
 let settings = load(LS_SET, {hours:8});
 let filter = "all", searchQ = "", curView = "viewCanvas";
 let editingId = null, focusId = null, focusSec = 0, focusRun = false, focusTick = null;
+let me = null;
 let calAnchor = startOfDay(new Date());
 const notified = new Set(load("fm.notified", []));
 
 function load(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }
-function save(){ localStorage.setItem(LS_TASKS, JSON.stringify(tasks)); }
-function saveSet(){ localStorage.setItem(LS_SET, JSON.stringify(settings)); }
+function save(){
+  localStorage.setItem(me ? LS_TASKS + "." + me.uid : LS_TASKS, JSON.stringify(tasks));
+  syncUp();
+}
+function saveSet(){ localStorage.setItem(LS_SET, JSON.stringify(settings)); syncUp(); }
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function startOfDay(d){ const x = new Date(d); x.setHours(0,0,0,0); return x; }
 function $(s){ return document.querySelector(s); }
@@ -1340,6 +1365,13 @@ $("#btnList").addEventListener("click", () => {
   const r = $("#rightList"), open = r.classList.toggle("open");
   $("#btnList").setAttribute("aria-expanded", open);
 });
+document.addEventListener("click", e => {
+  const r = $("#rightList");
+  if(r && r.classList.contains("open") && !e.target.closest("#rightList") && !e.target.closest("#btnList")){
+    r.classList.remove("open");
+    $("#btnList").setAttribute("aria-expanded", "false");
+  }
+});
 /* ---------- Google 캘린더 연동 ---------- */
 let gcal = load("fm.gcal", {clientId:"", token:null, exp:0});
 function saveGcal(){ localStorage.setItem("fm.gcal", JSON.stringify(gcal)); }
@@ -1487,6 +1519,106 @@ $("#setReset").addEventListener("click", () => {
   }
 });
 addEventListener("resize", () => { if(curView === "viewCanvas") renderRings(); });
+
+/* ---------- 계정 (Firebase Auth + Firestore) ---------- */
+const FB_CONFIG = {
+  apiKey: "AIzaSyAZeBeskwidSx8g8eguQcQzYrgUZ1FUvBI",
+  authDomain: "focusmap-502307.firebaseapp.com",
+  projectId: "focusmap-502307",
+};
+let fbAuth = null, fbDb = null, fbReady = false, syncT = null, authMode = "login";
+function syncUp(){
+  if(!me || !fbDb) return;
+  clearTimeout(syncT);
+  syncT = setTimeout(() => {
+    fbDb.collection("users").doc(me.uid)
+      .set({tasks, settings, updatedAt: new Date().toISOString()})
+      .catch(() => toast("동기화 실패 — 오프라인이면 다시 연결될 때 저장됩니다"));
+  }, 800);
+}
+async function loadUserData(u){
+  try{
+    const ref = fbDb.collection("users").doc(u.uid);
+    const snap = await ref.get();
+    if(snap.exists){
+      const d = snap.data();
+      tasks = Array.isArray(d.tasks) ? d.tasks : [];
+      if(d.settings && typeof d.settings.hours === "number") settings.hours = d.settings.hours;
+    } else {
+      const guest = load(LS_TASKS, []) || [];
+      tasks = (guest.length && confirm(`이 기기에 저장된 일정 ${guest.length}개를 새 계정으로 가져올까요?`)) ? guest : [];
+      await ref.set({tasks, settings, updatedAt: new Date().toISOString()});
+    }
+    localStorage.setItem(LS_TASKS + "." + u.uid, JSON.stringify(tasks));
+    renderAll();
+    toast(`${u.email} 계정으로 로그인했습니다`);
+  }catch(e){ toast("계정 데이터를 불러오지 못했습니다: " + (e.message || e)); }
+}
+function updateAcctUI(){
+  const b = $("#btnAcct"); if(!b) return;
+  const t = me ? `${me.email} — 클릭하여 로그아웃` : "로그인 / 회원가입";
+  b.title = t; b.setAttribute("aria-label", t);
+  b.style.color = me ? "var(--c-work)" : "";
+}
+function setAuthMode(m){
+  authMode = m;
+  $("#authTitle").textContent = m === "login" ? "로그인" : "회원가입";
+  $("#authGo").textContent = m === "login" ? "로그인" : "회원가입";
+  $("#authSwap").textContent = m === "login" ? "계정이 없나요? 회원가입 →" : "이미 계정이 있나요? 로그인 →";
+  $("#authErr").style.display = "none";
+}
+function authErrMsg(c){
+  return ({
+    "auth/email-already-in-use":"이미 가입된 이메일입니다",
+    "auth/invalid-email":"이메일 형식이 올바르지 않습니다",
+    "auth/weak-password":"비밀번호는 6자 이상이어야 합니다",
+    "auth/user-not-found":"등록되지 않은 이메일입니다",
+    "auth/wrong-password":"비밀번호가 올바르지 않습니다",
+    "auth/invalid-credential":"이메일 또는 비밀번호가 올바르지 않습니다",
+    "auth/too-many-requests":"시도가 너무 많습니다. 잠시 후 다시 시도해 주세요",
+    "auth/network-request-failed":"네트워크 오류입니다. 연결을 확인해 주세요",
+  })[c] || ("오류: " + c);
+}
+function initFB(){
+  if(!(window.firebase && FB_CONFIG.apiKey)) return;
+  try{
+    firebase.initializeApp(FB_CONFIG);
+    fbAuth = firebase.auth(); fbDb = firebase.firestore(); fbReady = true;
+    fbAuth.onAuthStateChanged(u => {
+      me = u; updateAcctUI();
+      if(u){
+        if($(".overlay.show") === $("#authOverlay")) closeOv("authOverlay");
+        loadUserData(u);
+      } else {
+        tasks = load(LS_TASKS, []) || [];
+        settings = load(LS_SET, {hours:8});
+        renderAll();
+      }
+    });
+  }catch(e){}
+}
+$("#btnAcct").addEventListener("click", () => {
+  if(me){ if(confirm(`${me.email}\n로그아웃할까요?`)) fbAuth.signOut(); return; }
+  if(!fbReady){ toast("계정 서버가 아직 설정되지 않았습니다 (게스트 모드)"); return; }
+  setAuthMode("login");
+  openOv("authOverlay", "#aEmail");
+});
+$("#authSwap").addEventListener("click", () => setAuthMode(authMode === "login" ? "signup" : "login"));
+$("#authGo").addEventListener("click", async () => {
+  const err = m => { const e = $("#authErr"); e.textContent = m; e.style.display = "block"; };
+  if(!fbReady){ err("계정 서버가 설정되지 않았습니다"); return; }
+  const em = $("#aEmail").value.trim(), pw = $("#aPw").value;
+  if(!em || !pw){ err("이메일과 비밀번호를 입력해 주세요"); return; }
+  $("#authGo").disabled = true;
+  try{
+    if(authMode === "signup") await fbAuth.createUserWithEmailAndPassword(em, pw);
+    else await fbAuth.signInWithEmailAndPassword(em, pw);
+    $("#aPw").value = "";
+  }catch(e){ err(authErrMsg(e.code)); }
+  $("#authGo").disabled = false;
+});
+$("#aPw").addEventListener("keydown", e => { if(e.key === "Enter") $("#authGo").click(); });
+initFB();
 renderStatus();
 renderCanvas();
 setInterval(() => {
